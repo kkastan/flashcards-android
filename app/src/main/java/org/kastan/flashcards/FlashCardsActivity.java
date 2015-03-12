@@ -7,12 +7,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.Random;
+import org.kastan.flashcards.model.SpellingGame;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class FlashCardsActivity extends ActionBarActivity {
 
-  Random rand = new Random();
+  private static String WORDS_ARR_KEY = "WORDS_ARR";
+  private static String WORDS_INDEX_KEY = "WORDS_INDEX";
+
+  SpellingGame game;
 
   static String[] words = {
           "the", "a", "an", "here", "is",
@@ -29,7 +35,27 @@ public class FlashCardsActivity extends ActionBarActivity {
     setContentView(R.layout.activity_flash_cards);
 
     wordView = (TextView) findViewById(R.id.flash_card_word);
-    updateWord();
+
+    if(null != savedInstanceState
+            && null != savedInstanceState.getCharSequenceArrayList(WORDS_ARR_KEY)
+            && savedInstanceState.containsKey(WORDS_INDEX_KEY)) {
+
+      game = new SpellingGame(savedInstanceState.getCharSequenceArrayList(WORDS_ARR_KEY), true);
+      game.setIndex(savedInstanceState.getInt(WORDS_INDEX_KEY));
+      currentWord();
+
+    } else {
+      game = new SpellingGame(Arrays.asList(words), false);
+      nextWord();
+    }
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    outState.remove(WORDS_ARR_KEY);
+    outState.remove(WORDS_INDEX_KEY);
+    outState.putCharSequenceArrayList(WORDS_ARR_KEY, new ArrayList<CharSequence>(game.getOrderdWords()));
+    outState.putInt(WORDS_INDEX_KEY, game.getIndex());
   }
 
   @Override
@@ -54,13 +80,15 @@ public class FlashCardsActivity extends ActionBarActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  public void nextWord(View view) {
-    updateWord();
+  public void onClick(View view) {
+    nextWord();
   }
 
-  private void updateWord() {
-    int randomNum = rand.nextInt(words.length);
-    wordView.setText(words[randomNum]);
+  private void nextWord() {
+    wordView.setText(game.next());
   }
 
+  private void currentWord() {
+    wordView.setText(game.current());
+  }
 }
