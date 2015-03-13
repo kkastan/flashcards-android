@@ -1,24 +1,25 @@
 package org.kastan.flashcards;
 
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.view.MotionEvent;
 import android.widget.TextView;
 
+import org.kastan.flashcards.gestures.LeftRightGestureListener;
+import org.kastan.flashcards.gestures.OnLeftRight;
 import org.kastan.flashcards.model.SpellingGame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 
-public class FlashCardsActivity extends ActionBarActivity {
+public class FlashCardsActivity extends ActionBarActivity implements OnLeftRight {
 
   private static String WORDS_ARR_KEY = "WORDS_ARR";
   private static String WORDS_INDEX_KEY = "WORDS_INDEX";
-
-  SpellingGame game;
 
   static String[] words = {
           "the", "a", "an", "here", "is",
@@ -27,7 +28,9 @@ public class FlashCardsActivity extends ActionBarActivity {
           "go", "you", "this", "down", "small"
   };
 
+  private SpellingGame game;
   private TextView wordView;
+  private GestureDetectorCompat mDetector;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +51,8 @@ public class FlashCardsActivity extends ActionBarActivity {
       game = new SpellingGame(Arrays.asList(words), false);
       nextWord();
     }
+
+    mDetector = new GestureDetectorCompat(this, new LeftRightGestureListener(this));
   }
 
   @Override
@@ -80,8 +85,14 @@ public class FlashCardsActivity extends ActionBarActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  public void onClick(View view) {
-    nextWord();
+  @Override
+  public boolean onTouchEvent(MotionEvent e) {
+    mDetector.onTouchEvent(e);
+    return super.onTouchEvent(e);
+  }
+
+  private void previousWord() {
+    wordView.setText(game.previous());
   }
 
   private void nextWord() {
@@ -90,5 +101,15 @@ public class FlashCardsActivity extends ActionBarActivity {
 
   private void currentWord() {
     wordView.setText(game.current());
+  }
+
+  @Override
+  public void onLeft() {
+    nextWord();
+  }
+
+  @Override
+  public void onRight() {
+    previousWord();
   }
 }
